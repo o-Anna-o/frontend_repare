@@ -16,54 +16,68 @@ export default function Navbar() {
   const [authState, setAuthState] = useState({})
 
 async function fetchBasket() {
-    const token = localStorage.getItem('lt_token')
-    if (!token) {
-      setCount(null)
-      setRequestId(null)
-      return
-    }
-
-    try {
-      //const token = getToken();
-      let tkn = getToken()?.trim();
-      const headers: Record<string,string> = {'Content-Type':'application/json'};
-
-      if (tkn) {
-        console.log("putting ")
-        headers['Authorization'] = 'Bearer ' + tkn;
-      }
-
-      console.log("HEADERS::: ", headers)
-      const res = await fetch('/api/request_ship/basket', {
-        method: 'GET',
-        headers
-      })
-      
-      console.log('[DEBUG api] addShipToRequest token= "', tkn, '"');
-
-      const json = await res.json().catch(() => null)
-      if (!json) {
-        setCount(null)
-        setRequestId(null)
-        return
-      }
-      let c = null
-      let id = null
-      if (typeof json === 'object') {
-        c = json.request_ship_count ?? json.count ?? null
-        id = json.request_ship_id ?? null
-        if (json.data && typeof json.data === 'object') {
-          id = id ?? json.data.request_ship_id ?? json.data.requestShipId ?? json.data.requestShipID ?? null
-          c = c ?? json.data.ships_count ?? json.data.shipsCount ?? json.count ?? null
-        }
-      }
-      setCount(c)
-      setRequestId(id)
-    } catch (e) {
-      setCount(null)
-      setRequestId(null)
-    }
+  const tkn = getToken();
+  if (!tkn) {
+    setCount(null);
+    setRequestId(null);
+    return;
   }
+
+  try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + tkn,
+    };
+
+    const res = await fetch('/api/request_ship/basket', {
+      method: 'GET',
+      headers,
+    });
+
+    // если не авторизован
+    if (res.status === 401) {
+      setCount(null);
+      setRequestId(null);
+      return;
+    }
+
+    const json = await res.json().catch(() => null);
+    if (!json || typeof json !== 'object') {
+      setCount(null);
+      setRequestId(null);
+      return;
+    }
+
+    let id = null;
+    let c = null;
+
+    if (json.data && typeof json.data === 'object') {
+      id = json.data.request_ship_id
+        ?? json.data.requestShipId
+        ?? json.data.requestShipID
+        ?? null;
+
+      c = json.data.ships_count
+        ?? json.data.shipsCount
+        ?? json.count
+        ?? null;
+    }
+
+    // ставим число, если оно есть
+    if (c !== null && c !== undefined) {
+      setCount(Number(c));
+    } else {
+      setCount(0);
+    }
+
+    setRequestId(id ? Number(id) : null);
+  } catch (e) {
+    console.error(e);
+    setCount(null);
+    setRequestId(null);
+  }
+}
+
 
 
   useEffect(() => {
@@ -78,26 +92,42 @@ async function fetchBasket() {
   }, [])
 
   return (
-    <div style={{ width: '100%', display: 'flex', justifyContent: 'center', position: 'relative' }}>
-      <div style={{ position: 'absolute', left: 12, top: 12 }}>
-        {count && count > 0 ? (
-          <Link to={requestId ? `/request_ship/${requestId}` : '/request_ship'} className="cart-link" style={{ textDecoration: 'none' }} onClick={e => e.stopPropagation()}>
-            <img className="loading_time-img cart-link-icon" src={'data:image/png;base64,' + CART_ICON_BASE64} alt="busket" />
-            <span className="cart-count">{count}</span>
-          </Link>
-        ) : (
-          <span className="cart-link cart-link--disabled">
-            <img className="loading_time-img cart-link-icon--disabled" src={'data:image/png;base64,' + CART_ICON_BASE64} alt="busket" />
-          </span>
-        )}
-      </div>
+  <div style={{ width: '100%', display: 'flex', justifyContent: 'center', position: 'relative' }}>
+    <div style={{ position: 'absolute', left: 12, top: 12 }}>
 
-      <div style={{ display: 'flex', gap: '60px', alignItems: 'center' }}>
-        <ShipListIcon />
-        <UserLoginLink key={localStorage.getItem('lt_token') || 'logged-out'} /> 
-        <AuthLink />
-      </div>
+      {typeof count === 'number' && count > 0 ? (
+        <Link
+          to={requestId ? `/request_ship/${requestId}` : '/request_ship'}
+          className="cart-link"
+          style={{ textDecoration: 'none' }}
+          onClick={e => e.stopPropagation()}
+        >
+          <img
+            className="loading_time-img cart-link-icon"
+            src={'data:image/png;base64,' + CART_ICON_BASE64}
+            alt="busket"
+          />
+          <span className="cart-count">{count}</span>
+        </Link>
+      ) : (
+        <span className="cart-link cart-link--disabled">
+          <img
+            className="loading_time-img cart-link-icon--disabled"
+            src={'data:image/png;base64,' + CART_ICON_BASE64}
+            alt="busket"
+          />
+        </span>
+      )}
 
     </div>
-  )
+
+    <div style={{ display: 'flex', gap: '60px', alignItems: 'center' }}>
+      <ShipListIcon />
+      <UserLoginLink key={localStorage.getItem('lt_token') || 'logged-out'} />
+      <AuthLink />
+    </div>
+
+  </div>
+)
+
 }
