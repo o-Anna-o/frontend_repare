@@ -44,6 +44,12 @@ export default function RequestShipPage() {
   const [resultTime, setResultTime] = useState<string>('')
 
 
+  const [errors, setErrors] = useState({
+  c20: false,
+  c40: false,
+  });
+
+
 async function load(idToLoad: string | undefined) {
   if (!idToLoad) return
   try {
@@ -132,20 +138,38 @@ const loadingFormation = useAppSelector(state => state.requestShip.loading);
 
 const onFormation = () => {
   if (!id) return;
-  if (!confirm("Сформировать заявку?")) return;
 
-  try {
-    console.log("[RequestShipPage] dispatching formRequestThunk for id=", id);
-  } catch (err) {
-    console.log("[RequestShipPage] onFormation debug err", err);
+  const c20 = Number(containers20) || 0;
+  const c40 = Number(containers40) || 0;
+
+  const newErrors = {
+    c20: c20 <= 0,
+    c40: c40 <= 0,
+  };
+
+  if (newErrors.c20 && newErrors.c40) {
+    setErrors(newErrors);
+    alert("Заполните хотя бы одно поле контейнеров");
+    return;
   }
-  dispatch(formRequestThunk(Number(id)));
+
+  setErrors({ c20: false, c40: false });
+
+  dispatch(
+    formRequestThunk({
+      id: Number(id),
+      containers20: c20,
+      containers40: c40,
+      comment: comment || "", 
+    })
+  );
 };
+
+
 
 
   async function onDeleteRequest() {
     if (!request) return
-    if (!confirm('Удалить всю заявку?')) return
 
     try {
       await api.api.requestShipDelete(request.RequestShipID)
@@ -195,22 +219,36 @@ const onFormation = () => {
           </div>
         ) : (
           <>
-            <form className="request-form" id="main-form" onSubmit={onCalculate} style={{width:1198}}>
+            <form className="request-form" id="main-form" style={{width:1198}}>
               <div className="request__counts">
                 <div className="request__cnt request__cnt-20-f">
                   <p>Количество 20-футовых контейнеров</p>
-                  <input className="request__cnt-input" type="number" name="containers_20ft"
+                  <input
+                    className="request__cnt-input"
+                    style={errors.c20 ? { border: "2px solid red" } : {}}
+                    type="number"
+                    name="containers_20ft"
                     placeholder="Введите целое число"
                     value={containers20}
-                    onChange={e => setContainers20(e.target.value === '' ? '' : Number(e.target.value))}
+                    onChange={e => {
+                      setContainers20(e.target.value === '' ? '' : Number(e.target.value));
+                      setErrors(prev => ({ ...prev, c20: false }));
+                    }}
                   />
                 </div>
                 <div className="request__cnt request__cnt-40-f">
                   <p>Количество 40-футовых контейнеров</p>
-                  <input className="request__cnt-input" type="number" name="containers_40ft"
+                  <input
+                    className="request__cnt-input"
+                    style={errors.c40 ? { border: "2px solid red" } : {}}
+                    type="number"
+                    name="containers_40ft"
                     placeholder="Введите целое число"
                     value={containers40}
-                    onChange={e => setContainers40(e.target.value === '' ? '' : Number(e.target.value))}
+                    onChange={e => {
+                      setContainers40(e.target.value === '' ? '' : Number(e.target.value));
+                      setErrors(prev => ({ ...prev, c40: false }));
+                    }}
                   />
                 </div>
               </div>

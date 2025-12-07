@@ -1,18 +1,40 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { api } from "../../api";
+import { ContentType } from "../../api/Api";
 
 export const formRequestThunk = createAsyncThunk(
   "requestShip/form",
-  async (id: number, thunkAPI) => {
+  async (
+    data: {
+      id: number;
+      containers20: number;
+      containers40: number;
+      comment: string;
+    },
+    thunkAPI
+  ) => {
     try {
-      // <- здесь добавили secure: true чтобы securityWorker добавил Authorization
-      await api.api.requestShipFormationUpdate(id, { secure: true });
+      await api.api.requestShipFormationUpdate(
+        data.id,
+        {
+          secure: true,
+          type: ContentType.Json,
+          body: {
+            containers_20ft: data.containers20,
+            containers_40ft: data.containers40,
+            comment: data.comment,
+          },
+        } as any // ← важно
+      );
+
       return true;
     } catch (e: any) {
       return thunkAPI.rejectWithValue(e?.message || "Ошибка формирования");
     }
   }
 );
+
+
 interface RequestShipState {
   loading: boolean;
 }
