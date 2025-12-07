@@ -5,9 +5,12 @@ import { getRequestShip, deleteShipFromRequest, deleteRequestShip, calculateLoad
 import ShipListIcon from '../components/ShipListIcon'
 import Breadcrumbs from '../components/Breadcrumbs'
 
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { formRequestThunk } from "../store/slices/requestShipSlice";
+
 import { api } from "../api" // импорт сгенерированного API
 
-type ShipInRequest = {
+type ShipInRequest = {  
   Ship: {
     ShipID: number
     Name: string
@@ -122,27 +125,22 @@ async function load(idToLoad: string | undefined) {
 
 // _________________________кодогенерация__________________________________
 
-async function onFormation() {
-  if (!request) return
+//  Redux Thunk версия onFormation 
 
-  if (!confirm("Сформировать заявку?")) return
+const dispatch = useAppDispatch();
+const loadingFormation = useAppSelector(state => state.requestShip.loading);
+
+const onFormation = () => {
+  if (!id) return;
+  if (!confirm("Сформировать заявку?")) return;
 
   try {
-    await api.api.requestShipFormationUpdate(request.RequestShipID)
-
-    // Перезагружаем данные заявки
-    await load(String(request.RequestShipID))
-
-    // Обновляем корзину
-    window.dispatchEvent(new CustomEvent("lt:basket:refresh"))
-
-    alert("Заявка сформирована")
-  } catch (e) {
-    console.error("formation error", e)
-    alert("Ошибка формирования заявки")
+    console.log("[RequestShipPage] dispatching formRequestThunk for id=", id);
+  } catch (err) {
+    console.log("[RequestShipPage] onFormation debug err", err);
   }
-}
-
+  dispatch(formRequestThunk(Number(id)));
+};
 
 
   async function onDeleteRequest() {
@@ -277,8 +275,13 @@ async function onFormation() {
             </div>
 
             <div className="ship-card__btns" style={{marginTop:20}}>
-              <button type="submit" form="main-form" className="ship-card__btn beige-btn btn" onClick={onFormation}>
-                Сформировать заявку
+                <button
+                  type="button"
+                  className="ship-card__btn beige-btn btn"
+                  onClick={onFormation}
+                  disabled={loadingFormation}
+                >
+                  {loadingFormation ? "Формируется…" : "Сформировать заявку"}
               </button>
 
               <button type="button" className="ship-card__btn beige-btn btn" onClick={onDeleteRequest} style={{marginLeft:10}}>

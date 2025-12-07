@@ -14,9 +14,11 @@ export default function Navbar() {
   const [count, setCount] = useState<number | null>(null)
   const [requestId, setRequestId] = useState<number | null>(null)
   const [authState, setAuthState] = useState({})
+  const isAuthenticated = Boolean(getToken())
 
 async function fetchBasket() {
   const tkn = getToken();
+  console.log('fetchBasket: token (clean) =', tkn);
   if (!tkn) {
     setCount(null);
     setRequestId(null);
@@ -29,54 +31,68 @@ async function fetchBasket() {
       'Authorization': 'Bearer ' + tkn,
     };
 
+    console.log('fetchBasket: sending GET /api/request_ship/basket with headers:', headers);
+
     const res = await fetch('/api/request_ship/basket', {
       method: 'GET',
       headers,
     });
 
-    // если не авторизован
+    console.log('fetchBasket: response status =', res.status);
+
+    const text = await res.text();
+    console.log('fetchBasket: raw response text =', text);
+    let json = null;
+    try {
+      json = JSON.parse(text);
+    } catch (e) {
+      json = null;
+    }
+
     if (res.status === 401) {
+      console.warn('fetchBasket: 401 Unauthorized — token may be invalid');
       setCount(null);
       setRequestId(null);
       return;
     }
 
-    const json = await res.json().catch(() => null);
-    if (!json || typeof json !== 'object') {
+    if (!json) {
+      console.warn('fetchBasket: response is not JSON or empty');
       setCount(null);
       setRequestId(null);
       return;
     }
+
+    console.log('fetchBasket: parsed json =', json);
 
     let id = null;
-    let c = null;
+    let c: number | null = null;
 
     if (json.data && typeof json.data === 'object') {
-      id = json.data.request_ship_id
-        ?? json.data.requestShipId
-        ?? json.data.requestShipID
-        ?? null;
-
-      c = json.data.ships_count
-        ?? json.data.shipsCount
-        ?? json.count
-        ?? null;
-    }
-
-    // ставим число, если оно есть
-    if (c !== null && c !== undefined) {
-      setCount(Number(c));
+      id = json.data.request_ship_id ?? json.data.requestShipId ?? json.data.requestShipID ?? null;
+      c = json.data.ships_count ?? json.data.shipsCount ?? json.count ?? null;
     } else {
-      setCount(0);
+      id = json.request_ship_id ?? json.requestShipId ?? null;
+      c = json.ships_count ?? json.shipsCount ?? json.count ?? null;
     }
 
+    // Normalize
+    if (c === null || typeof c === 'undefined') {
+      // if server intentionally returns 0, we set 0; else null
+      setCount(0);
+    } else {
+      setCount(Number(c));
+    }
     setRequestId(id ? Number(id) : null);
+
+    console.log('fetchBasket: setCount=', c, ' setRequestId=', id);
   } catch (e) {
-    console.error(e);
+    console.error('fetchBasket: exception', e);
     setCount(null);
     setRequestId(null);
   }
 }
+
 
 
 
@@ -91,11 +107,12 @@ async function fetchBasket() {
     return () => window.removeEventListener('lt:basket:refresh', handler)
   }, [])
 
-  return (
+return (
   <div style={{ width: '100%', display: 'flex', justifyContent: 'center', position: 'relative' }}>
     <div style={{ position: 'absolute', left: 12, top: 12 }}>
 
-      {typeof count === 'number' && count > 0 ? (
+      {isAuthenticated ? (
+        // Авторизованный пользователь — корзина всегда активна (показываем 0, если count отсутствует)
         <Link
           to={requestId ? `/request_ship/${requestId}` : '/request_ship'}
           className="cart-link"
@@ -107,10 +124,11 @@ async function fetchBasket() {
             src={'data:image/png;base64,' + CART_ICON_BASE64}
             alt="busket"
           />
-          <span className="cart-count">{count}</span>
+          <span className="cart-count">{typeof count === 'number' ? count : 0}</span>
         </Link>
       ) : (
-        <span className="cart-link cart-link--disabled">
+        // Гость — корзина неактивна
+        <span className="cart-link cart-link--disabled" title="Требуется вход">
           <img
             className="loading_time-img cart-link-icon--disabled"
             src={'data:image/png;base64,' + CART_ICON_BASE64}
@@ -129,5 +147,6 @@ async function fetchBasket() {
 
   </div>
 )
+
 
 }

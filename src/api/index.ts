@@ -21,3 +21,9 @@ export const api = new Api({
   withCredentials: true,
   securityWorker,
 });
+
+// export const updateRequestShip = (id: number, data: any) => {
+//   return api.requestShip.updateRequestShip(id, data);
+// };
+
+
