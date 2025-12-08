@@ -56,6 +56,13 @@ input {
     font-size: 25px;
     font-weight: 500;
 }
+.fields__comment {
+    width: 900px !important; 
+}
+.fields__result {
+    width: 30px !important;
+}
+
 .request {
     width: 1350px;
     display: flex;
@@ -150,11 +157,14 @@ input {
     flex-direction: row;
     gap: 30px;
 }
-.fields__comment--input { 
+.fields__comment--input {
     width: 844px;
+    height: 50px; /* Ограничиваем высоту поля комментария */
+    resize: vertical; /* Разрешаем изменение высоты только по вертикали */
 }
 .fields__result--input {
     width: 323px;
+    height: 50px; /* Ограничиваем высоту поля результата */
 }
 
 .ship-card__btns {

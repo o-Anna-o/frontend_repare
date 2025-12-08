@@ -109,8 +109,8 @@ async function fetchBasket() {
   }, [])
 
 return (
-  <div style={{ width: '96%', position: 'relative' }}>
-    <div style={{ position: 'absolute', left: 12, top: 12 }}>
+  <div style={{ width: '100%', position: 'relative', display: 'flex', alignItems: 'center' }}>
+    <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 10 }}>
 
       {isAuthenticated ? (
         // Авторизованный пользователь — корзина всегда активна (показываем 0, если count отсутствует)
@@ -129,7 +129,7 @@ return (
         </Link>
       ) : (
         // Гость — корзина неактивна
-        <span className="cart-link cart-link--disabled" title="Требуется вход">
+        <span className="links cart-link cart-link--disabled" title="Требуется вход">
           <img
             className="loading_time-img cart-link-icon--disabled"
             src={'data:image/png;base64,' + CART_ICON_BASE64}
@@ -137,17 +137,18 @@ return (
           />
         </span>
       )}
-
+  
     </div>
     
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '10px', width: '100%' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', gap: '50px', width: '70%', marginLeft: '60px' }}>
       <ShipListIcon />
       <RequestShipsLink />
       <AuthLink />
-      <div style={{ marginLeft: 'auto' }}>
-        <UserLoginLink key={localStorage.getItem('lt_token') || 'logged-out'} />
-      </div>
     </div>
+    <div style={{ marginLeft: 'auto' }}>
+        <UserLoginLink key={localStorage.getItem('lt_token') || 'logged-out'} />
+    </div>
+    
 
   </div>
 )

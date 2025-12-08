@@ -261,9 +261,9 @@ const onFormation = () => {
                     onChange={e => setComment(e.target.value)}
                   />
                 </div>
-                <div className="fields_item fields__result">
+                <div className="fields_item">
                   <p>Общее время погрузки</p>
-                  <input className="fields__result--input" type="text" value={resultTime ?? ''} readOnly />
+                  <input className="fields__result--input fields__result" type="text" value={resultTime ?? ''} readOnly />
                 </div>
               </div>
             </form>

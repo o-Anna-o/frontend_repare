@@ -78,9 +78,10 @@ export default function UserLoginLink() {
   }
 
   return (
-    <div >
+    <div
+      className="links user_login"
+    >
       <span
-        className="profile_link"
         onClick={() => navigate('/profile')}
       >
         {userLogin || 'Профиль'}

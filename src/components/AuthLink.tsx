@@ -9,13 +9,7 @@ export default function AuthLink() {
 
   return (
     <div
-      className="breadcrumbs"
-      style={{
-        width: '100%',
-        display: 'flex',
-        justifyContent: 'center',
-        position: 'relative'
-      }}
+      className="links"
     >
       {token ? (
         <a
