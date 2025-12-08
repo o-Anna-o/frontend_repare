@@ -70,6 +70,13 @@ p  { font-size: 25px; }
   background-color: #917b4e;
 }
 
+.header_links {
+  display: 'flex';
+  flex-direction: row !important;
+  gap: '60px';
+  justify-content: space-around;
+}
+
 /*  КАРТОЧКИ  */
 .ship-cards {
   width: 100%;

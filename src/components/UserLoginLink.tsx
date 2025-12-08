@@ -78,24 +78,9 @@ export default function UserLoginLink() {
   }
 
   return (
-    <div
-      className="breadcrumbs"
-      style={{
-        width: '100%',
-        display: 'flex',
-        justifyContent: 'center',
-        position: 'relative'
-      }}
-    >
+    <div >
       <span
-        style={{
-          color: 'white',
-          textDecoration: 'none',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          height: '100%'
-        }}
+        className="profile_link"
         onClick={() => navigate('/profile')}
       >
         {userLogin || 'Профиль'}

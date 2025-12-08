@@ -109,7 +109,7 @@ async function fetchBasket() {
   }, [])
 
 return (
-  <div style={{ width: '100%', display: 'flex', justifyContent: 'center', position: 'relative' }}>
+  <div style={{ width: '96%', position: 'relative' }}>
     <div style={{ position: 'absolute', left: 12, top: 12 }}>
 
       {isAuthenticated ? (
@@ -139,14 +139,14 @@ return (
       )}
 
     </div>
-
-    <div style={{ display: 'flex', gap: '60px', alignItems: 'center' }}>
+    
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '10px', width: '100%' }}>
       <ShipListIcon />
       <RequestShipsLink />
+      <AuthLink />
       <div style={{ marginLeft: 'auto' }}>
         <UserLoginLink key={localStorage.getItem('lt_token') || 'logged-out'} />
       </div>
-      <AuthLink />
     </div>
 
   </div>
