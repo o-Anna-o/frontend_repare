@@ -9,10 +9,16 @@ import RegisterPage from './pages/RegisterPage'
 import HomePage from './pages/HomePage'
 import ProfilePage from './pages/ProfilePage'
 import RequestShipsListPage from './pages/RequestShipsListPage'
-
-
+import { clearToken } from './auth'
+import { useEffect } from 'react'
 
 export default function App(){
+  // Сброс токена при загрузке приложения (перезагрузке страницы)
+  useEffect(() => {
+    console.log('[App] Приложение загружено, сбрасываем токен');
+    clearToken();
+  }, []);
+
   return (
     <BrowserRouter>
     
@@ -31,7 +37,3 @@ export default function App(){
     </BrowserRouter>
   )
 }
-
-
-
-

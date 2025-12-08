@@ -5,6 +5,7 @@ import { DsRequestShip } from '../api/Api'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Breadcrumbs from '../components/Breadcrumbs'
+import { getToken } from '../auth'
 import '../../resources/request_ship_style.css'
 
 export default function RequestShipsListPage() {
@@ -13,19 +14,31 @@ export default function RequestShipsListPage() {
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
+  // Проверка авторизации при монтировании компонента
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      console.log('[RequestShipsListPage] Токен отсутствует, перенаправляем на страницу входа');
+      navigate('/login');
+      return;
+    }
+    
+    // Установка токена в заголовки API
+    api.instance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    console.log('[RequestShipsListPage] Токен установлен в заголовках API');
+  }, [navigate]);
+
   useEffect(() => {
     const fetchRequests = async () => {
       try {
         console.log('[RequestShipsListPage] Начинаем загрузку заявок')
         
         // Проверяем токен перед запросами
-        const token = localStorage.getItem('lt_token');
-        console.log('[RequestShipsListPage] Токен из localStorage:', token);
-        
-        // Убедимся, что токен установлен в заголовках API
-        if (token) {
-          api.instance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          console.log('[RequestShipsListPage] Токен установлен в заголовках API');
+        const token = getToken();
+        if (!token) {
+          console.log('[RequestShipsListPage] Токен отсутствует, перенаправляем на страницу входа');
+          navigate('/login');
+          return;
         }
         
         // Получаем данные пользователя для проверки ID
@@ -91,13 +104,25 @@ export default function RequestShipsListPage() {
           status: err?.response?.status,
           data: err?.response?.data
         });
+        
+        // Если ошибка авторизации, перенаправляем на страницу входа
+        if (err?.response?.status === 401) {
+          console.log('[RequestShipsListPage] Ошибка 401, перенаправляем на страницу входа');
+          navigate('/login');
+          return;
+        }
+        
         setError(err?.response?.data?.detail || err?.message || 'Ошибка загрузки заявок')
         setLoading(false)
       }
     }
 
-    fetchRequests()
-  }, [])
+    // Проверяем токен перед загрузкой заявок
+    const token = getToken();
+    if (token) {
+      fetchRequests();
+    }
+  }, [navigate])
 
   // Функция для определения, является ли заявка черновиком
   const isDraft = (status: string) => {
