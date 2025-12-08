@@ -24,7 +24,7 @@ export async function getShips(params?: ShipsFilterParams) {
   if (typeof params?.cranes_max === 'number') url.searchParams.set('cranes_max', String(params.cranes_max))
 
   // ещё лог — покажет итоговый URL в консоли браузера
-  console.log('[api.getShips] fetch ->', url.toString())
+  
 
   const res = await fetch(url.toString(), {
     method: 'GET',
@@ -43,7 +43,7 @@ export async function getShips(params?: ShipsFilterParams) {
 }
 
 export async function addShipToRequest(shipId:number){
-  console.log('[DEBUG api] addShipToRequest token=', getToken());
+  
   const token = getToken();
   const headers: Record<string,string> = {'Content-Type':'application/json'};
   if (token) headers['Authorization'] = 'Bearer ' + token;

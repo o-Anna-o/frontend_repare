@@ -143,7 +143,9 @@ return (
     <div style={{ display: 'flex', gap: '60px', alignItems: 'center' }}>
       <ShipListIcon />
       <RequestShipsLink />
-      <UserLoginLink key={localStorage.getItem('lt_token') || 'logged-out'} />
+      <div style={{ marginLeft: 'auto' }}>
+        <UserLoginLink key={localStorage.getItem('lt_token') || 'logged-out'} />
+      </div>
       <AuthLink />
     </div>
 

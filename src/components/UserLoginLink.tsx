@@ -15,8 +15,8 @@ export default function UserLoginLink() {
       const token = getToken()
       const loggedIn = isLoggedIn()
       
-      console.log('[UserLoginLink] Component mounted - checking auth status:', { 
-        token, 
+      console.log('[UserLoginLink] Component mounted - checking auth status:', {
+        token,
         loggedIn,
         localStorageToken: localStorage.getItem('lt_token')
       })
@@ -33,7 +33,24 @@ export default function UserLoginLink() {
         console.log('[UserLoginLink] User is logged in, fetching profile...')
         const res = await api.api.usersProfileList()
         console.log('[UserLoginLink] Profile data received:', res.data)
-        setUserLogin(res.data?.login ?? 'Пользователь')
+        
+        // Детальная нормализация полей данных пользователя
+        const userData = res.data;
+        console.log('[UserLoginLink] Raw user data structure:', userData);
+        
+        // Попытка получить логин различными способами
+        const login = userData?.login ||
+                    (userData as any)?.Login ||
+                    (userData as any)?.userLogin ||
+                    (userData as any)?.username ||
+                    (userData as any)?.userName ||
+                    (userData as any)?.name ||
+                    'Пользователь';
+        
+        console.log('[UserLoginLink] Extracted login value:', login);
+        console.log('[UserLoginLink] Login field type:', typeof login);
+        
+        setUserLogin(login)
       } catch (err: any) {
         console.error('[UserLoginLink] Failed to fetch profile:', err)
         if (err.response) {
@@ -50,23 +67,13 @@ export default function UserLoginLink() {
     checkAuthAndFetchProfile()
   }, [])
 
-  // Log what we're rendering
-  console.log('[UserLoginLink] Render check:', { 
-    loading, 
-    isLoggedIn: isLoggedIn(),
-    token: getToken(),
-    userLogin 
-  })
-  
   // If still loading, show nothing
   if (loading) {
-    console.log('[UserLoginLink] Still loading, showing nothing')
     return null
   }
   
   // If not logged in, don't show anything
   if (!isLoggedIn() || !getToken()) {
-    console.log('[UserLoginLink] Not logged in, showing nothing')
     return null
   }
 
