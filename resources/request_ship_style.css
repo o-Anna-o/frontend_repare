@@ -167,6 +167,21 @@ input {
     border: none;          
 }
 
+/* Стили для активной кнопки */
+.btn-active {
+    background-color: #AA9B7D;
+    color: #fff;
+    cursor: pointer;
+}
+
+/* Стили для неактивной кнопки */
+.btn-inactive {
+    background-color: #3A3A3A;
+    color: #fff;
+    border: 2px solid #AA9B7D;
+    cursor: not-allowed;
+}
+
 .ship-card__btn-form {
     display: contents; 
     margin: 0;

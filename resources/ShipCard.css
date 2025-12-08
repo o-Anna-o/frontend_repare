@@ -63,7 +63,7 @@
   width: 100%;
   width: 489px;
   padding: 14px 32px;
-  background-color: #AA9B7D;
+  background-color: #AA9B7D !important;
   color: #fff;
   border: none;
   border-radius: 5px;

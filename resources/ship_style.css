@@ -84,6 +84,7 @@ ship-card__btns {
     font-size: 16px;
     text-align: center;
     border: none;
+    background-color: #AA9B7D !important;
 }
 .ship-card__btn {
     padding: 12px 0;

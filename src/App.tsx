@@ -8,6 +8,8 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import HomePage from './pages/HomePage'
 import ProfilePage from './pages/ProfilePage'
+import RequestShipsListPage from './pages/RequestShipsListPage'
+
 
 
 export default function App(){
@@ -23,6 +25,7 @@ export default function App(){
             <Route path='/login' element={<LoginPage/>} />
             <Route path='/register' element={<RegisterPage/>} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/request_ship" element={<RequestShipsListPage />} />
         </Routes>
       </div>
     </BrowserRouter>
