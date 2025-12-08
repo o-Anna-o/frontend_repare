@@ -99,6 +99,10 @@ p  { font-size: 25px; }
   justify-content: center;
 }
 
+.request__cnt {
+  float: left !important;
+}
+
 /*  ИКОНКИ  */
 .header-icon,
 .cart-link-icon,
@@ -115,7 +119,7 @@ p  { font-size: 25px; }
     display: inline-block; /* чтобы позиционировать дочерние элементы */
     text-decoration: none;
     cursor: pointer;
-    padding-top: 20px !important;
+    
 }
 
 .cart-link--disabled {

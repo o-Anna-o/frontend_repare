@@ -24,6 +24,8 @@ export default function Breadcrumbs() {
       case 'request_ship': return 'Заявки'
       case 'login': return 'Вход'
       case 'register': return 'Регистрация'
+      case 'profile': return 'Личный кабинет'
+      
       default: return part
     }
   }
