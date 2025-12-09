@@ -15,28 +15,28 @@ export default function UserLoginLink() {
       const token = getToken()
       const loggedIn = isLoggedIn()
       
-      console.log('[UserLoginLink] Component mounted - checking auth status:', {
-        token,
-        loggedIn,
-        localStorageToken: localStorage.getItem('lt_token')
-      })
+      
+      
+      
+      
+      
       
       // If not logged in, hide the link
       if (!loggedIn || !token) {
-        console.log('[UserLoginLink] User not logged in, hiding link')
+      
         setUserLogin(null)
         setLoading(false)
         return
       }
 
       try {
-        console.log('[UserLoginLink] User is logged in, fetching profile...')
+      
         const res = await api.api.usersProfileList()
-        console.log('[UserLoginLink] Profile data received:', res.data)
+        
         
         // Детальная нормализация полей данных пользователя
         const userData = res.data;
-        console.log('[UserLoginLink] Raw user data structure:', userData);
+        
         
         // Попытка получить логин различными способами
         const login = userData?.login ||
@@ -47,15 +47,15 @@ export default function UserLoginLink() {
                     (userData as any)?.name ||
                     'Пользователь';
         
-        console.log('[UserLoginLink] Extracted login value:', login);
-        console.log('[UserLoginLink] Login field type:', typeof login);
+        
+        
         
         setUserLogin(login)
       } catch (err: any) {
-        console.error('[UserLoginLink] Failed to fetch profile:', err)
+        
         if (err.response) {
-          console.error('[UserLoginLink] Response status:', err.response.status)
-          console.error('[UserLoginLink] Response data:', err.response.data)
+          
+          
         }
         // Even if we can't fetch profile, we're still logged in
         setUserLogin('Пользователь')

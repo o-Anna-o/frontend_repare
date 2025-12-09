@@ -1,5 +1,6 @@
 // src/api.ts
 import { getToken } from './auth'
+import axios from 'axios'
 const API_BASE = '/api'
 
 // НЕ используем mock здесь — только бэкенд
@@ -12,8 +13,6 @@ export type ShipsFilterParams = {
 }
 
 export async function getShips(params?: ShipsFilterParams) {
-  // логирование для диагностики
-  console.log('[api.getShips] called with', params)
 
   const url = new URL(API_BASE + '/ships', window.location.origin)
 
@@ -23,20 +22,16 @@ export async function getShips(params?: ShipsFilterParams) {
   if (typeof params?.cranes_min === 'number') url.searchParams.set('cranes_min', String(params.cranes_min))
   if (typeof params?.cranes_max === 'number') url.searchParams.set('cranes_max', String(params.cranes_max))
 
-  // ещё лог — покажет итоговый URL в консоли браузера
-  
 
-  const res = await fetch(url.toString(), {
-    method: 'GET',
-    credentials: 'include'
+  const res = await axios.get(url.toString(), {
+    withCredentials: true
   })
 
-  if (!res.ok) {
-    const text = await res.text().catch(()=> '')
-    throw new Error('HTTP ' + res.status + (text ? ': ' + text : ''))
+  if (res.status < 200 || res.status >= 300) {
+    throw new Error('HTTP ' + res.status + (res.statusText ? ': ' + res.statusText : ''))
   }
 
-  const j = await res.json().catch(()=>null)
+  const j = res.data
   if (j && j.data && Array.isArray(j.data)) return j.data
   if (j && Array.isArray(j)) return j
   return j ?? []
@@ -48,18 +43,15 @@ export async function addShipToRequest(shipId:number){
   const headers: Record<string,string> = {'Content-Type':'application/json'};
   if (token) headers['Authorization'] = 'Bearer ' + token;
 
-  const response = await fetch(`${API_BASE}/ships/${shipId}/add-to-ship-bucket`, {
-    method: 'POST',
+  const response = await axios.post(`${API_BASE}/ships/${shipId}/add-to-ship-bucket`, {}, {
     headers,
-    credentials: 'include'
+    withCredentials: true
   });
 
-  if (!response.ok) {
-    let text = ''
-    try { text = await response.text() } catch(e) {}
-    throw new Error('HTTP ' + response.status + (text ? ': ' + text : ''))
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error('HTTP ' + response.status + (response.statusText ? ': ' + response.statusText : ''))
   }
-  try { return await response.json() } catch { return {} }
+  return response.data
 }
 
 // получить одну заявку по id
@@ -69,17 +61,15 @@ export async function getRequestShip(id: number | string) {
   if (token) headers['Authorization'] = 'Bearer ' + token
 
   const url = `${API_BASE}/request_ship/${id}`
-  const res = await fetch(url, {
-    method: 'GET',
+  const res = await axios.get(url, {
     headers,
-    credentials: 'include'
+    withCredentials: true
   })
 
-  if (!res.ok) {
-    const text = await res.text().catch(()=> '')
-    throw new Error('HTTP ' + res.status + (text ? ': ' + text : ''))
+  if (res.status < 200 || res.status >= 300) {
+    throw new Error('HTTP ' + res.status + (res.statusText ? ': ' + res.statusText : ''))
   }
-  const j = await res.json().catch(()=>null)
+  const j = res.data
   if (!j) return {}
   // normalize common shapes
   const data = j.data ?? j
@@ -92,16 +82,14 @@ export async function getRequestShipBasket() {
   const headers: Record<string,string> = {'Content-Type': 'application/json'}
   if (token) headers['Authorization'] = 'Bearer ' + token
 
-  const res = await fetch(`${API_BASE}/request_ship/basket`, {
-    method: 'GET',
+  const res = await axios.get(`${API_BASE}/request_ship/basket`, {
     headers,
-    credentials: 'include'
+    withCredentials: true
   })
-  if (!res.ok) {
-    const text = await res.text().catch(()=> '')
-    throw new Error('HTTP ' + res.status + (text ? ': ' + text : ''))
+  if (res.status < 200 || res.status >= 300) {
+    throw new Error('HTTP ' + res.status + (res.statusText ? ': ' + res.statusText : ''))
   }
-  const j = await res.json().catch(()=>null)
+  const j = res.data
   if (!j) return null
   const payload = j.data ?? j
 
@@ -119,16 +107,14 @@ export async function deleteShipFromRequest(requestId: number | string, shipId: 
   const headers: Record<string, string> = {}
   if (token) headers['Authorization'] = 'Bearer ' + token
 
-  const res = await fetch(`${API_BASE}/request_ship/${requestId}/ships/${shipId}`, {
-    method: 'DELETE',
+  const res = await axios.delete(`${API_BASE}/request_ship/${requestId}/ships/${shipId}`, {
     headers,
-    credentials: 'include',
+    withCredentials: true,
   })
-  if (!res.ok) {
-    const txt = await res.text().catch(()=> '')
-    throw new Error('HTTP ' + res.status + (txt ? ': ' + txt : ''))
+  if (res.status < 200 || res.status >= 300) {
+    throw new Error('HTTP ' + res.status + (res.statusText ? ': ' + res.statusText : ''))
   }
-  return res.json().catch(()=>null)
+  return res.data
 }
 
 // удалить всю заявку
@@ -137,17 +123,14 @@ export async function deleteRequestShip(requestId: number | string) {
   const headers: Record<string,string> = {'Content-Type': 'application/json'}
   if (token) headers['Authorization'] = 'Bearer ' + token
 
-  const res = await fetch(`${API_BASE}/request_ship/${requestId}`, {
-    method: 'POST',
+  const res = await axios.post(`${API_BASE}/request_ship/${requestId}`, { _method: 'DELETE' }, {
     headers,
-    credentials: 'include',
-    body: JSON.stringify({ _method: 'DELETE' })
+    withCredentials: true
   })
-  if (!res.ok) {
-    const txt = await res.text().catch(()=> '')
-    throw new Error('HTTP ' + res.status + (txt ? ': ' + txt : ''))
+  if (res.status < 200 || res.status >= 300) {
+    throw new Error('HTTP ' + res.status + (res.statusText ? ': ' + res.statusText : ''))
   }
-  return res.json().catch(()=>null)
+  return res.data
 }
 
 // рассчитать время погрузки (POST)
@@ -156,15 +139,12 @@ export async function calculateLoadingTime(requestId: number | string, payload: 
   const headers: Record<string,string> = {'Content-Type': 'application/json'}
   if (token) headers['Authorization'] = 'Bearer ' + token
 
-  const res = await fetch(`${API_BASE}/request_ship/calculate_loading_time/${requestId}`, {
-    method: 'POST',
+  const res = await axios.post(`${API_BASE}/request_ship/calculate_loading_time/${requestId}`, payload, {
     headers,
-    credentials: 'include',
-    body: JSON.stringify(payload)
+    withCredentials: true
   })
-  if (!res.ok) {
-    const txt = await res.text().catch(()=> '')
-    throw new Error('HTTP ' + res.status + (txt ? ': ' + txt : ''))
+  if (res.status < 200 || res.status >= 300) {
+    throw new Error('HTTP ' + res.status + (res.statusText ? ': ' + res.statusText : ''))
   }
-  return res.json().catch(()=>null)
+  return res.data
 }

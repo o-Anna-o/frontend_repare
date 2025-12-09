@@ -15,7 +15,7 @@ export default function RegisterPage() {
     setError(null)
 
     try {
-      console.log('[Register] submitting', { fio, login, password })
+      
 
       // вызываем метод из кодогенерации
       const data = await api.api.usersRegisterCreate({
@@ -25,15 +25,15 @@ export default function RegisterPage() {
         role: "creator"
       })
 
-      console.log('[Register] success', data)
+      
       navigate('/login') // редирект после успешной регистрации
 
     } catch (err: any) {
-      console.error('[Register] error object:', err)
+      
 
       // Axios-подобная структура ошибки
       if (err?.response?.data) {
-        console.error('[Register] response data:', err.response.data)
+        
       }
 
       setError(err?.response?.data?.detail || err?.message || 'Ошибка регистрации')

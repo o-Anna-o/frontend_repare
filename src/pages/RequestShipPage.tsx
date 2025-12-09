@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getRequestShip, deleteShipFromRequest, deleteRequestShip, calculateLoadingTime } from '../apiLegacy'
-import ShipListIcon from '../components/ShipListIcon'
+import Navbar from '../components/Navbar'
 import Breadcrumbs from '../components/Breadcrumbs'
 
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -205,7 +205,7 @@ const onFormation = () => {
 
   return (
     <>
-    <ShipListIcon />
+    <Navbar />
     <Breadcrumbs />
     
     <div style={{display:'flex', flexDirection:'column', alignItems:'center'}}>

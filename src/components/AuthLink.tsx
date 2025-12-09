@@ -5,7 +5,6 @@ import { getToken, clearToken } from '../auth'
 
 export default function AuthLink() {
   const token = getToken()
-  console.log('[AuthLink] token:', token)
 
   return (
     <div

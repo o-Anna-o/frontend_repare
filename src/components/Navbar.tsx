@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getToken } from '../auth'
+import axios from 'axios'
 
 import ShipListIcon from '../components/ShipListIcon'
 import AuthLink from '../components/AuthLink'
@@ -19,7 +20,7 @@ export default function Navbar() {
 
 async function fetchBasket() {
   const tkn = getToken();
-  console.log('fetchBasket: token (clean) =', tkn);
+  
   if (!tkn) {
     setCount(null);
     setRequestId(null);
@@ -32,39 +33,32 @@ async function fetchBasket() {
       'Authorization': 'Bearer ' + tkn,
     };
 
-    console.log('fetchBasket: sending GET /api/request_ship/basket with headers:', headers);
+    
 
-    const res = await fetch('/api/request_ship/basket', {
-      method: 'GET',
+    const res = await axios.get('/api/request_ship/basket', {
       headers,
     });
 
-    console.log('fetchBasket: response status =', res.status);
+    
 
-    const text = await res.text();
-    console.log('fetchBasket: raw response text =', text);
-    let json = null;
-    try {
-      json = JSON.parse(text);
-    } catch (e) {
-      json = null;
-    }
+    const json = res.data;
+    
 
     if (res.status === 401) {
-      console.warn('fetchBasket: 401 Unauthorized — token may be invalid');
+      
       setCount(null);
       setRequestId(null);
       return;
     }
 
     if (!json) {
-      console.warn('fetchBasket: response is not JSON or empty');
+      
       setCount(null);
       setRequestId(null);
       return;
     }
 
-    console.log('fetchBasket: parsed json =', json);
+    
 
     let id = null;
     let c: number | null = null;
@@ -86,14 +80,13 @@ async function fetchBasket() {
     }
     setRequestId(id ? Number(id) : null);
 
-    console.log('fetchBasket: setCount=', c, ' setRequestId=', id);
+    
   } catch (e) {
-    console.error('fetchBasket: exception', e);
+    
     setCount(null);
     setRequestId(null);
   }
 }
-
 
 
 
@@ -111,7 +104,7 @@ async function fetchBasket() {
 return (
   <div style={{ width: '100%', position: 'relative', display: 'flex', alignItems: 'center' }}>
     <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 10 }}>
-
+    
       {isAuthenticated ? (
         // Авторизованный пользователь — корзина всегда активна (показываем 0, если count отсутствует)
         <Link
@@ -152,6 +145,5 @@ return (
 
   </div>
 )
-
 
 }

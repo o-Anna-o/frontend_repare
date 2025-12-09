@@ -23,15 +23,15 @@ export default function ProfilePage() {
 
     const fetchProfile = async () => {
       try {
-        console.log('[ProfilePage] fetching profile...')
+        
         const res = await api.api.usersProfileList()
-        console.log('[ProfilePage] profile data:', res.data)
-        console.log('[ProfilePage] profile data type:', typeof res.data);
-        console.log('[ProfilePage] profile data keys:', Object.keys(res.data || {}));
+        
+        
+        
         
         // Детальная нормализация полей данных пользователя
         const userData = res.data;
-        console.log('[ProfilePage] Raw user data structure:', userData);
+        
         
         // Нормализация каждого поля с различными вариантами имен
         const fio = userData?.fio ||
@@ -93,10 +93,10 @@ export default function ProfilePage() {
           containers40ftCount,
         };
         
-        console.log('[ProfilePage] Normalized user data:', normalizedUser);
+        
         setUser(normalizedUser)
       } catch (err: any) {
-        console.error('[ProfilePage] failed to fetch profile', err)
+        
         setError(err?.message || 'Ошибка при загрузке профиля')
       } finally {
         setLoading(false)
@@ -107,7 +107,7 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     try {
-      console.log('[ProfilePage] Saving profile data:', user);
+      
       
       // Подготавливаем данные для отправки в формате API
       const userDataToSend = {
@@ -120,11 +120,11 @@ export default function ProfilePage() {
         containers40ftCount: user?.containers40ftCount || 0,
       };
       
-      console.log('[ProfilePage] Sending user data:', userDataToSend);
+      
       
       // Используем кодогенерацию для обновления профиля
       const response = await api.api.usersProfileUpdate(userDataToSend);
-      console.log('[ProfilePage] Profile update response:', response);
+      
       
       // После сохранения выходим из режима редактирования
       setIsEditing(false);
@@ -132,10 +132,10 @@ export default function ProfilePage() {
       // Показываем сообщение об успешном сохранении
       alert('Данные успешно сохранены!');
     } catch (err: any) {
-      console.error('[ProfilePage] failed to save profile', err);
+      
       if (err.response) {
-        console.error('[ProfilePage] Response status:', err.response.status);
-        console.error('[ProfilePage] Response data:', err.response.data);
+        
+        
       }
       alert('Ошибка при сохранении данных: ' + (err?.message || 'Неизвестная ошибка'));
     }

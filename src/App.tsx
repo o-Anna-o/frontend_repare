@@ -15,14 +15,13 @@ import { useEffect } from 'react'
 export default function App(){
   // Сброс токена при загрузке приложения (перезагрузке страницы)
   useEffect(() => {
-    console.log('[App] Приложение загружено, сбрасываем токен');
     clearToken();
   }, []);
 
   return (
     <BrowserRouter>
     
-      <div className="page-content" style={{ marginTop: '20px' }}> 
+      <div className="page-content" style={{ marginTop: '20px' }}>
         <Routes>
             <Route path='/' element={<HomePage/>} />
             <Route path='/ships' element={<ShipsList/>} />

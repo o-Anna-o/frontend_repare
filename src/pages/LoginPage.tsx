@@ -15,12 +15,12 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      console.log('[Login] submitting', { login, password })
+      
 
       // вызываем метод из кодогенерации
       const data = await api.api.usersLoginCreate({ login, password })
 
-      console.log('[Login] success', data)
+      
 
       const token =
         (data.data as any)?.token ||
@@ -29,16 +29,16 @@ export default function LoginPage() {
 
       if (!token) {
         setError('Токен не получен')
-        console.error('[Login] no token in response', data)
+        
         return
       }
 
       saveToken(token)
       navigate('/ships')
     } catch (err: any) {
-      console.error('[Login] error object', err)
+      
       if (err?.response?.data) {
-        console.error('[Login] response data', err.response.data)
+        
       }
       setError(err?.response?.data?.detail || err?.message || 'Ошибка входа')
     }

@@ -10,9 +10,7 @@ export function getToken(): string | null {
 }
 
 export function clearToken() {
-  console.log('[auth] Очищаем токен из localStorage');
   localStorage.removeItem('lt_token');
-  console.log('[auth] Токен очищен');
 }
 
 export function isLoggedIn() {
