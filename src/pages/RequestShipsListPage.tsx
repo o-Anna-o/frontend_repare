@@ -168,10 +168,10 @@ export default function RequestShipsListPage() {
                     <p>Статус: {status}</p>
                   </div>
                   <div className="request__card__creation-date">
-                    <p>Создана: {creationDate}</p>
+                    <p>Создана: {creationDate ? new Date(creationDate).toLocaleDateString('ru-RU') : 'Не указана'}</p>
                   </div>
                   <div className="request__card__completion-date">
-                    <p>Завершена: {completionDate}</p>
+                    <p>Завершена: {completionDate && new Date(completionDate).toString() !== 'Invalid Date' ? new Date(completionDate).toLocaleDateString('ru-RU') : 'нет'}</p>
                   </div>
                   <div className="request__card__open-button">
                     <button 
