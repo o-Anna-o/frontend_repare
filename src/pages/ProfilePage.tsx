@@ -15,7 +15,7 @@ export default function ProfilePage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Redirect to login if not logged in
+    // перенаправление на авторизацию
     if (!isLoggedIn()) {
       navigate('/login')
       return
@@ -26,14 +26,9 @@ export default function ProfilePage() {
         
         const res = await api.api.usersProfileList()
         
-        
-        
-        
         // Детальная нормализация полей данных пользователя
         const userData = res.data;
         
-        
-        // Нормализация каждого поля с различными вариантами имен
         const fio = userData?.fio ||
                   (userData as any)?.FIO ||
                   (userData as any)?.fullName ||

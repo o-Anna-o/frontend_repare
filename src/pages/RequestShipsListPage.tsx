@@ -8,7 +8,9 @@ import Breadcrumbs from '../components/Breadcrumbs'
 import { getToken } from '../auth'
 import '../../resources/request_ship_style.css'
 
+// Компонент для отображения списка заявок пользователя
 export default function RequestShipsListPage() {
+  // Состояния для хранения данных заявок, состояния загрузки и ошибок
   const [requests, setRequests] = useState<DsRequestShip[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -18,56 +20,41 @@ export default function RequestShipsListPage() {
   useEffect(() => {
     const token = getToken();
     if (!token) {
-      
+      // Если токен отсутствует, перенаправляем на страницу входа
       navigate('/login');
       return;
     }
     
-    // Установка токена в заголовки API
+    // Установка токена в заголовки API для авторизованных запросов
     api.instance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     
   }, [navigate]);
 
+  // Эффект для загрузки списка заявок пользователя
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        
-        
         // Проверяем токен перед запросами
         const token = getToken();
         if (!token) {
-          
           navigate('/login');
           return;
         }
         
-        // Получаем данные пользователя для проверки ID
-        
+        // Получаем данные профиля текущего пользователя
         const userProfileResponse = await api.api.usersProfileList()
         
-        
-        
-        
-        // Получаем все заявки
-        
+        // Получаем все заявки через кодогенерацию API
         const response = await api.api.requestShipList()
-        
         
         // Добавим подробный лог для анализа структуры данных заявок
         response.data.forEach((request, index) => {
-          
           // Нормализация названий полей для логгирования
           const requestId = request.requestShipID || (request as any).RequestShipID || (request as any).request_ship_id || (request as any).id;
           const userId = request.userID || (request as any).UserID || (request as any).user_id || (request as any).userId;
           const status = request.status || (request as any).Status;
           const creationDate = request.creationDate || (request as any).CreationDate;
           const completionDate = request.completionDate || (request as any).CompletionDate;
-          
-          
-          
-          
-          
-          
         });
         
         // Фильтруем заявки по текущему пользователю
@@ -86,19 +73,15 @@ export default function RequestShipsListPage() {
                                 (userProfileResponse.data as any).UserId ||
                                 (userProfileResponse.data as any).userId;
           
-          
-          
-          
+          // Возвращаем только заявки текущего пользователя
           return userId === profileUserId;
         })
         
         setRequests(userRequests)
         setLoading(false)
       } catch (err: any) {
-        
         // Если ошибка авторизации, перенаправляем на страницу входа
         if (err?.response?.status === 401) {
-          
           navigate('/login');
           return;
         }
@@ -126,7 +109,9 @@ export default function RequestShipsListPage() {
     navigate(`/request_ship/${requestId}`);
   };
 
+  // Отображение состояния загрузки
   if (loading) return <div className="loading">Загрузка...</div>
+  // Отображение ошибки, если она произошла
   if (error) return <div className="error">Ошибка: {error}</div>
 
   return (
@@ -137,9 +122,11 @@ export default function RequestShipsListPage() {
       <div className="request">
         <h1>Мои заявки</h1>
         
+        {/* Отображение сообщения, если у пользователя нет заявок */}
         {requests.length === 0 ? (
           <p>У вас пока нет заявок.</p>
         ) : (
+          
           <div className="request__cards">
             {requests.map((request) => {
               // Нормализация названий полей для отображения
@@ -166,6 +153,7 @@ export default function RequestShipsListPage() {
                     <p>Завершена: {completionDate && new Date(completionDate).toString() !== 'Invalid Date' ? new Date(completionDate).toLocaleDateString('ru-RU') : 'нет'}</p>
                   </div>
                   <div className="request__card__open-button">
+                    
                     <button
                       className="btn btn-inactive"
                       onClick={() => handleOpenRequest(requestId)}

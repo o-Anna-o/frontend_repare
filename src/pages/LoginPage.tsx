@@ -21,7 +21,6 @@ export default function LoginPage() {
       const data = await api.api.usersLoginCreate({ login, password })
 
       
-
       const token =
         (data.data as any)?.token ||
         (data.data as any)?.access_token ||
