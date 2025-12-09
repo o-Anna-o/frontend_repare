@@ -47,31 +47,15 @@ export default function RequestShipsListPage() {
         // Получаем все заявки через кодогенерацию API
         const response = await api.api.requestShipList()
         
-        // Добавим подробный лог для анализа структуры данных заявок
-        response.data.forEach((request, index) => {
-          // Нормализация названий полей для логгирования
-          const requestId = request.requestShipID || (request as any).RequestShipID || (request as any).request_ship_id || (request as any).id;
-          const userId = request.userID || (request as any).UserID || (request as any).user_id || (request as any).userId;
-          const status = request.status || (request as any).Status;
-          const creationDate = request.creationDate || (request as any).CreationDate;
-          const completionDate = request.completionDate || (request as any).CompletionDate;
-        });
-        
         // Фильтруем заявки по текущему пользователю
         const userRequests = response.data.filter(request => {
           // Нормализация названий полей для заявки
-          const requestId = request.requestShipID || (request as any).RequestShipID || (request as any).request_ship_id || (request as any).id;
           const userId = request.userID || (request as any).UserID || (request as any).user_id || (request as any).userId;
-          const status = request.status || (request as any).Status;
-          const creationDate = request.creationDate || (request as any).CreationDate;
-          const completionDate = request.completionDate || (request as any).CompletionDate;
           
           // Проверяем правильное поле для userID в данных профиля (нормализация названий)
           const profileUserId = userProfileResponse.data.userID ||
                                 (userProfileResponse.data as any).UserID ||
-                                (userProfileResponse.data as any).user_id ||
-                                (userProfileResponse.data as any).UserId ||
-                                (userProfileResponse.data as any).userId;
+                                (userProfileResponse.data as any).UserId
           
           // Возвращаем только заявки текущего пользователя
           return userId === profileUserId;
