@@ -96,14 +96,6 @@ export default function RequestShipsListPage() {
         setLoading(false)
       } catch (err: any) {
         
-        
-        
-        
-        
-        
-        
-        
-        
         // Если ошибка авторизации, перенаправляем на страницу входа
         if (err?.response?.status === 401) {
           
@@ -174,8 +166,8 @@ export default function RequestShipsListPage() {
                     <p>Завершена: {completionDate && new Date(completionDate).toString() !== 'Invalid Date' ? new Date(completionDate).toLocaleDateString('ru-RU') : 'нет'}</p>
                   </div>
                   <div className="request__card__open-button">
-                    <button 
-                      className={`btn ${isRequestDraft ? 'btn-active' : 'btn-inactive'}`}
+                    <button
+                      className="btn btn-inactive"
                       onClick={() => handleOpenRequest(requestId)}
                       disabled={!isRequestDraft}
                     >

@@ -63,6 +63,10 @@ input {
     width: 30px !important;
 }
 
+
+.request__card__status {
+    width: 262px;
+}
 .request {
     width: 1350px;
     display: flex;
