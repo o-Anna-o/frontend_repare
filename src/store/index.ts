@@ -6,7 +6,7 @@ import requestShipReducer from './slices/requestShipSlice'   //  для requestS
 export const store = configureStore({
   reducer: {
     filter: filterReducer,
-    requestShip: requestShipReducer,    // регистрируем requestShip reducer в store
+    requestShip: requestShipReducer,   
   },
 })
 
