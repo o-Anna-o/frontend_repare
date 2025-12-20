@@ -1,7 +1,7 @@
 // src/pages/RequestShipPage.tsx
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getRequestShip, deleteShipFromRequest, deleteRequestShip, calculateLoadingTime } from '../apii'
+import { getRequestShip, deleteShipFromRequest, deleteRequestShip, calculateLoadingTime, updateShipCountInRequest } from '../apii'
 import Navbar from '../components/Navbar'
 import Breadcrumbs from '../components/Breadcrumbs'
 
@@ -50,63 +50,63 @@ export default function RequestShipPage() {
   });
 
 
-async function load(idToLoad: string | undefined) {
-  if (!idToLoad) return
-  try {
-    setLoading(true)
-    const data = await getRequestShip(idToLoad) 
+  async function load(idToLoad: string | undefined) {
+    if (!idToLoad) return
+    try {
+      setLoading(true)
+      const data = await getRequestShip(idToLoad) 
 
-    const payload = data?.data ?? data
+      const payload = data?.data ?? data
 
-    if (!payload || typeof payload !== 'object') {
-      throw new Error('Unexpected request_ship payload')
+      if (!payload || typeof payload !== 'object') {
+        throw new Error('Unexpected request_ship payload')
+      }
+
+      const requestShipId = payload.request_ship_id
+      const containers20 = payload.containers_20ft_count ?? 0
+      const containers40 = payload.containers_40ft_count ?? 0
+      const commentVal = payload.comment ?? ''
+      const loadingTimeVal = payload.loading_time ?? ''
+
+      const rawShips = Array.isArray(payload.ships) ? payload.ships : []
+
+      const shipsNormalized = rawShips.map((si: any) => ({
+        Ship: {
+          ShipID: si.ship_id,
+          Name: si.name,
+          PhotoURL: si.photo_url,
+          Capacity: si.capacity,
+          Length: si.length,
+          Width: si.width,
+          Cranes: si.cranes
+        },
+        ShipsCount: si.ships_count ?? 1
+      }))
+
+      const rs: RequestShip = {
+        RequestShipID: requestShipId,
+        Containers20ftCount: containers20,
+        Containers40ftCount: containers40,
+        Comment: commentVal,
+        LoadingTime: loadingTimeVal,
+        Ships: shipsNormalized
+      }
+
+      setRequest(rs)
+      setContainers20(rs.Containers20ftCount ?? '')
+      setContainers40(rs.Containers40ftCount ?? '')
+      setComment(rs.Comment ?? '')
+      setResultTime(rs.LoadingTime ?? '')
+    } catch (e) {
+      console.error('load request error', e)
+      if (e instanceof Error && e.message.startsWith('HTTP 401')) {
+        navigate('/login')
+      }
+      setRequest(null)
+    } finally {
+      setLoading(false)
     }
-
-    const requestShipId = payload.request_ship_id
-    const containers20 = payload.containers_20ft_count ?? 0
-    const containers40 = payload.containers_40ft_count ?? 0
-    const commentVal = payload.comment ?? ''
-    const loadingTimeVal = payload.loading_time ?? ''
-
-    const rawShips = Array.isArray(payload.ships) ? payload.ships : []
-
-    const shipsNormalized = rawShips.map((si: any) => ({
-      Ship: {
-        ShipID: si.ship_id,
-        Name: si.name,
-        PhotoURL: si.photo_url,
-        Capacity: si.capacity,
-        Length: si.length,
-        Width: si.width,
-        Cranes: si.cranes
-      },
-      ShipsCount: si.ships_count ?? 1
-    }))
-
-    const rs: RequestShip = {
-      RequestShipID: requestShipId,
-      Containers20ftCount: containers20,
-      Containers40ftCount: containers40,
-      Comment: commentVal,
-      LoadingTime: loadingTimeVal,
-      Ships: shipsNormalized
-    }
-
-    setRequest(rs)
-    setContainers20(rs.Containers20ftCount ?? '')
-    setContainers40(rs.Containers40ftCount ?? '')
-    setComment(rs.Comment ?? '')
-    setResultTime(rs.LoadingTime ?? '')
-  } catch (e) {
-    console.error('load request error', e)
-    if (e instanceof Error && e.message.startsWith('HTTP 401')) {
-      navigate('/login')
-    }
-    setRequest(null)
-  } finally {
-    setLoading(false)
   }
-}
 
 
 
@@ -116,6 +116,34 @@ async function load(idToLoad: string | undefined) {
     window.addEventListener('lt:basket:refresh', handler)
     return ()=> window.removeEventListener('lt:basket:refresh', handler)
   }, [id])
+
+  // Функция для обновления количества кораблей в локальном состоянии
+  const updateShipCount = (shipId: number, newCount: number) => {
+    if (request && request.Ships) {
+      const updatedShips = request.Ships.map(ship =>
+        ship.Ship.ShipID === shipId ? { ...ship, ShipsCount: newCount } : ship
+      );
+      setRequest({ ...request, Ships: updatedShips });
+    }
+  };
+
+  // Функция для сохранения количества кораблей в локальном состоянии и в базе данных
+  const onSaveShip = async (shipId: number, count: number) => {
+    // Обновляем локальное состояние
+    updateShipCount(shipId, count);
+    
+    // Сохраняем в базе данных
+    try {
+      if (request) {
+        await updateShipCountInRequest(request.RequestShipID, shipId, count);
+        // Отправляем событие обновления корзины
+        window.dispatchEvent(new CustomEvent('lt:basket:refresh'));
+      }
+    } catch (error) {
+      console.error('Ошибка при сохранении количества кораблей:', error);
+      alert('Ошибка при сохранении количества кораблей');
+    }
+  };
 
   async function onDeleteShip(shipId: number) {
     if (!request) return
@@ -164,7 +192,6 @@ const onFormation = () => {
     })
   );
 };
-
 
 
 
@@ -269,39 +296,115 @@ const onFormation = () => {
             </form>
 
             <h2>Выбранные контейнеровозы</h2>
-            <div className="request__cards" style={{display:'flex', flexDirection:'column', gap:30}}>
+            <div className="request__cards" style={{display:'flex', flexDirection:'column', gap:20}}>
+              {/* Заголовок таблицы */}
+              <div className="request__card_table_header request__card-header">
+                <div className="card-header_request_busket__card__title">Корабль</div>
+                <div className="card-header_request_busket__card__photo">Фото</div>
+                <div className="card-header_request_busket__card__capacity">Вместимость</div>
+                <div className="card-header_request_busket__card__cranes">Краны</div>
+                <div className="card-header_request_busket__card__count">Количество</div>
+                <div className="card-header_request_busket__card__action">Действие</div>
+              </div>
+              
               {request.Ships && request.Ships.length > 0 ? (
                 request.Ships.map((s) => (
-                  <div key={s.Ship.ShipID} className="request__card" style={{display:'flex', flexDirection:'row', gap:40, width:1198, border:'2px solid #AA9B7D', padding:30, borderRadius:5}}>
-                    <h2 className="request__card__title" style={{width:148}}>{s.Ship.Name}</h2>
+                  <div key={s.Ship.ShipID} className="request__card_table" >
+                    <div className="card-table_request__card__title">{s.Ship.Name}</div>
 
-                    {s.Ship.PhotoURL ? (
-                      <img className="request__card__ship-card__img"
-                           src={getShipImageUrl(s.Ship.PhotoURL)}
-                           style={{width:360}}
-                           alt={s.Ship.Name}
-                           onError={(ev)=> { (ev.target as HTMLImageElement).style.display = 'none' }}
-                      />
-                    ) : null}
-
-                    <div className="ship-card__text">
-                      <p><b>Вместимость:</b> {s.Ship.Capacity ?? '-'} TEU</p>
-                      <p><b>Габариты:</b> длина {s.Ship.Length ?? '-'} м, ширина {s.Ship.Width ?? '-'} м</p>
-                      <p><b>Краны:</b> {s.Ship.Cranes ?? '-'} одновременно</p>
+                    <div style={{width:200, height:100}}>
+                      {s.Ship.PhotoURL ? (
+                        <img className="request__card__ship-card__img"
+                             src={getShipImageUrl(s.Ship.PhotoURL)}
+                             style={{maxWidth:'100%', maxHeight:'100%'}}
+                             alt={s.Ship.Name}
+                             onError={(ev)=> { (ev.target as HTMLImageElement).style.display = 'none' }}
+                        />
+                      ) : (
+                        <div style={{color:'#888'}}>Нет фото</div>
+                      )}
                     </div>
 
-                    <div className="ship-card__other" style={{display:'flex', flexDirection:'column', gap:30}}>
-                      <div className="ship-card__other-item ship-card__cnt"><p>Количество</p><input className="ship-card__cnt-input" type="text" value={String(s.ShipsCount)} readOnly/></div>
+                    <div className="card-title_request__card__capacity">{s.Ship.Capacity ?? '-'} TEU</div>
+                    <div className="card-header_request_busket__card__cranes">{s.Ship.Cranes ?? '-'}</div>
+                    
+                    <div style={{width:150, display:'flex', alignItems:'center', gap:10 }}>
+                      <button
+                        type="button"
+                        className="ship-card__other-btn btn"
+                        onClick={() => {
+                          // Уменьшаем количество кораблей на 1
+                          const newCount = Math.max(1, s.ShipsCount - 1);
+                          // Обновляем локальное состояние
+                          updateShipCount(s.Ship.ShipID, newCount);
+                        }}
+                        style={{
+                          width: '30px',
+                          height: '30px',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: 0,
+                          fontSize: '16px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        -
+                      </button>
+                      <input
+                        className="ship-card__cnt-input"
+                        type="number"
+                        value={s.ShipsCount}
+                        onChange={(e) => {
+                          const newCount = parseInt(e.target.value) || 1;
+                          updateShipCount(s.Ship.ShipID, newCount);
+                        }}
+                        min="1"
+                        style={{width:'80px', textAlign:'center'}}
+                      />
+                      <button
+                        type="button"
+                        className="ship-card__other-btn btn"
+                        onClick={() => {
+                          // Увеличиваем количество кораблей на 1
+                          const newCount = s.ShipsCount + 1;
+                          // Обновляем локальное состояние
+                          updateShipCount(s.Ship.ShipID, newCount);
+                        }}
+                        style={{
+                          width: '30px',
+                          height: '30px',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: 0,
+                          fontSize: '16px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        +
+                      </button>
+                    </div>
 
-                      <div>
-                        <button
-                          type="button"
-                          className="ship-card__other-item ship-card__other-btn btn"
-                          onClick={()=> onDeleteShip(s.Ship.ShipID)}
-                        >
-                          Удалить
-                        </button>
-                      </div>
+                    <div style={{width:150, display:'flex', gap:10}}>
+                      <button
+                        type="button"
+                        className="ship-card__other-btn btn"
+                        onClick={()=> onSaveShip(s.Ship.ShipID, s.ShipsCount)}
+                        style={{padding: '8px 16px', fontSize: '16px', height: 'auto'}}
+                      >
+                        Сохранить
+                      </button>
+                      <button
+                        type="button"
+                        className="ship-card__other-btn btn"
+                        onClick={()=> onDeleteShip(s.Ship.ShipID)}
+                        style={{padding: '8px 16px', fontSize: '16px', height: 'auto'}}
+                      >
+                        Удалить
+                      </button>
                     </div>
                   </div>
                 ))
@@ -319,7 +422,7 @@ const onFormation = () => {
                   onClick={onFormation}
                   disabled={loadingFormation}
                 >
-                  {loadingFormation ? "Формируется…" : "Сформировать заявку"}
+                  {loadingFormation ? "Формируется…" : "Сформировать"}
               </button>
 
               <button type="button" className="ship-card__btn beige-btn btn" onClick={onDeleteRequest} style={{marginLeft:10}}>
