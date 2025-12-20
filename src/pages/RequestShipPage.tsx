@@ -1,12 +1,12 @@
 // src/pages/RequestShipPage.tsx
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getRequestShip, deleteShipFromRequest, deleteRequestShip, calculateLoadingTime } from '../apiLegacy'
+import { getRequestShip, deleteShipFromRequest, deleteRequestShip, calculateLoadingTime } from '../apii'
 import Navbar from '../components/Navbar'
 import Breadcrumbs from '../components/Breadcrumbs'
 
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { formRequestThunk } from "../store/slices/requestShipSlice";
+import { formRequestShipThunk } from "../store/slices/requestShipSlice";
 
 import { api } from "../api" // импорт сгенерированного API
 
@@ -156,11 +156,11 @@ const onFormation = () => {
   setErrors({ c20: false, c40: false });
 
   dispatch(
-    formRequestThunk({
+    formRequestShipThunk({
       id: Number(id),
       containers20: c20,
       containers40: c40,
-      comment: comment || "", 
+      comment: comment || "",
     })
   );
 };
