@@ -5,8 +5,8 @@ import { api } from "../../api";
 // Импортируем тип контента для указания формата данных
 import { ContentType } from "../../api/Api";
 
-// Создаем асинхронный thunk для отправки запроса на формирование заявки
-export const formRequestThunk = createAsyncThunk(
+// AsyncThunk для отправки запроса на формирование заявки
+export const formRequestShipThunk = createAsyncThunk(
   "requestShip/form",
   async (
     // Определяем тип данных, которые будут передаваться в thunk
@@ -72,17 +72,17 @@ const requestShipSlice = createSlice({
   // Определяем обработчики для extraReducers (асинхронных действий)
   extraReducers: (builder) => {
     // Обрабатываем состояние ожидания для thunk формирования заявки
-    builder.addCase(formRequestThunk.pending, (state) => {
+    builder.addCase(formRequestShipThunk.pending, (state) => {
       // Устанавливаем флаг загрузки в true
       state.loading = true;
     });
     // Обрабатываем успешное выполнение thunk формирования заявки
-    builder.addCase(formRequestThunk.fulfilled, (state) => {
+    builder.addCase(formRequestShipThunk.fulfilled, (state) => {
       // Сбрасываем флаг загрузки в false
       state.loading = false;
     });
     // Обрабатываем ошибку выполнения thunk формирования заявки
-    builder.addCase(formRequestThunk.rejected, (state) => {
+    builder.addCase(formRequestShipThunk.rejected, (state) => {
       // Сбрасываем флаг загрузки в false
       state.loading = false;
     });
