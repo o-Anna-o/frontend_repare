@@ -7,6 +7,7 @@ import Navbar from '../components/Navbar'
 import Breadcrumbs from '../components/Breadcrumbs'
 import { getToken } from '../auth'
 import '../../resources/request_ship_style.css'
+import { completeRequestShip } from '../apii'
 
 // Компонент для отображения списка заявок пользователя
 export default function RequestShipsListPage() {
@@ -21,6 +22,7 @@ export default function RequestShipsListPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [creationDateFilter, setCreationDateFilter] = useState(new Date().toISOString().split('T')[0])
   const [formationDateFilter, setFormationDateFilter] = useState('')
+  const [userRole, setUserRole] = useState<string | null>(null)
 
   // Проверка авторизации при монтировании компонента
   useEffect(() => {
@@ -49,23 +51,37 @@ export default function RequestShipsListPage() {
         
         // Получаем данные профиля текущего пользователя
         const userProfileResponse = await api.api.usersProfileList()
+
+        const role =
+          userProfileResponse.data.role ||
+          (userProfileResponse.data as any).Role ||
+          (userProfileResponse.data as any).role_name
+
+        setUserRole(role)
         
         // Получаем все заявки через кодогенерацию API
         const response = await api.api.requestShipList()
         
-        // Фильтруем заявки по текущему пользователю
-        const userRequests = response.data.filter(request => {
-          // Нормализация названий полей для заявки
-          const userId = request.userID || (request as any).UserID || (request as any).user_id || (request as any).userId;
-          
-          // Проверяем правильное поле для userID в данных профиля (нормализация названий)
-          const profileUserId = userProfileResponse.data.userID ||
-                                (userProfileResponse.data as any).UserID ||
-                                (userProfileResponse.data as any).UserId
-          
-          // Возвращаем только заявки текущего пользователя
-          return userId === profileUserId;
-        })
+        // Для оператора порта отображаем все заявки, для других пользователей - только свои
+        let userRequests = [];
+        if (role === "port_operator") {
+          // Для оператора порта отображаем все заявки
+          userRequests = response.data;
+        } else {
+          // Для других пользователей фильтруем по текущему пользователю
+          userRequests = response.data.filter(request => {
+            // Нормализация названий полей для заявки
+            const userId = request.userID || (request as any).UserID || (request as any).user_id || (request as any).userId;
+            
+            // Проверяем правильное поле для userID в данных профиля (нормализация названий)
+            const profileUserId = userProfileResponse.data.userID ||
+                                  (userProfileResponse.data as any).UserID ||
+                                  (userProfileResponse.data as any).UserId
+            
+            // Возвращаем только заявки текущего пользователя
+            return userId === profileUserId;
+          });
+        }
         
         setRequests(userRequests)
         // Фильтруем заявки при загрузке - не отображаем черновики
@@ -180,7 +196,7 @@ export default function RequestShipsListPage() {
       <Breadcrumbs />
       
       <div className="request">
-        <h1>Мои заявки</h1>
+        <h1>{userRole === "port_operator" ? "Все заявки" : "Мои заявки"}</h1>
         
         {/* Фильтры */}
         <div className="request__filters">
@@ -222,14 +238,17 @@ export default function RequestShipsListPage() {
           
           <div className="request__cards">
             {/* Заголовок таблицы */}
-            <div className="request__card request__card-header">
-              <div className=" card-header_request__card__title">№</div>
-              <div className=" card-header_request__card__20ft">20 футов</div>
-              <div className=" card-header_request__card__40ft">40 футов</div>
-              <div className=" card-header_request__card__status">Статус</div>
-              <div className=" card-header_request__card__creation-date">Дата создания</div>
-              <div className=" card-header_request__card__formation-date">Дата оформления</div>
-              <div className=" card-header_request__card__result">Результат</div>
+            <div className={`request__card request__card-header ${userRole === "port_operator" ? "port-operator" : ""}`}>
+              <div className={`card-header_request__card__title ${userRole === "port_operator" ? "port-operator" : ""}`}>№</div>
+              <div className={`card-header_request__card__20ft ${userRole === "port_operator" ? "port-operator" : ""}`}>20 футов</div>
+              <div className={`card-header_request__card__40ft ${userRole === "port_operator" ? "port-operator" : ""}`}>40 футов</div>
+              <div className={`card-header_request__card__status ${userRole === "port_operator" ? "port-operator" : ""}`}>Статус</div>
+              <div className={`card-header_request__card__creation-date ${userRole === "port_operator" ? "port-operator" : ""}`}>Дата создания</div>
+              <div className={`card-header_request__card__formation-date ${userRole === "port_operator" ? "port-operator" : ""}`}>Дата оформления</div>
+              <div className={`card-header_request__card__result ${userRole === "port_operator" ? "port-operator" : ""}`}>Результат</div>
+              {userRole === "port_operator" && (
+                <div className={`card-header_request__card__actions ${userRole === "port_operator" ? "port-operator" : ""}`}>Действие</div>
+              )}
             </div>
             
             {filteredRequests.map((request) => {
@@ -244,21 +263,67 @@ export default function RequestShipsListPage() {
                            
               // Проверяем, является ли заявка черновиком
               const isRequestDraft = isDraft(status);
+
               
               return (
-                <div className="request__card" key={requestId}>
-                  <div className="request__card__title">{requestId}</div>
-                  <div className="request__card__20ft">{containers20}</div>
-                  <div className="request__card__40ft">{containers40}</div>
-                  <div className="request__card__status">{status}</div>
-                  <div className="request__card__creation-date">
-                    {creationDate ? new Date(creationDate).toLocaleDateString('ru-RU') : 'Не указана'}
-                  </div>
-                  <div className="request__card__formation-date">
-                    {formationDate ? new Date(formationDate).toLocaleDateString('ru-RU') : 'нет'}
-                  </div>
-                  <div className="request__card__result">{resultTime}</div>
+                <div className={`request__card ${userRole === "port_operator" ? "port-operator" : ""}`} key={requestId}>
+                <div className={`request__card__title ${userRole === "port_operator" ? "port-operator" : ""}`}>{requestId}</div>
+                <div className={`request__card__20ft ${userRole === "port_operator" ? "port-operator" : ""}`}>{containers20}</div>
+                <div className={`request__card__40ft ${userRole === "port_operator" ? "port-operator" : ""}`}>{containers40}</div>
+                <div className={`request__card__status ${userRole === "port_operator" ? "port-operator" : ""}`}>{status}</div>
+                <div className={`request__card__creation-date ${userRole === "port_operator" ? "port-operator" : ""}`}>
+                  {creationDate ? new Date(creationDate).toLocaleDateString('ru-RU') : 'Не указана'}
                 </div>
+                <div className={`request__card__formation-date ${userRole === "port_operator" ? "port-operator" : ""}`}>
+                  {formationDate ? new Date(formationDate).toLocaleDateString('ru-RU') : 'нет'}
+                </div>
+                <div className={`request__card__result ${userRole === "port_operator" ? "port-operator" : ""}`}>{resultTime}</div>
+
+                
+                {userRole === "port_operator" && (
+                  <div className={`request__card__actions ${userRole === "port_operator" ? "port-operator" : ""}`}>
+                    {status.toLowerCase() === "сформирован" ? (
+                      <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                        <button
+                          className="btn btn-success"
+                          onClick={async () => {
+                            try {
+                              console.log("Completing request:", requestId, "action: complete");
+                              await completeRequestShip(requestId, "complete");
+                              alert("Заявка завершена, расчёт запущен");
+                              navigate(0); // перезагрузка списка
+                            } catch (e: any) {
+                              console.error("Ошибка завершения заявки:", e);
+                              alert("Ошибка завершения заявки: " + (e.message || e));
+                            }
+                          }}
+                        >
+                          Завершить
+                        </button>
+
+                        <button
+                          className="btn btn-danger"
+                          onClick={async () => {
+                            try {
+                              console.log("Rejecting request:", requestId, "action: reject");
+                              await completeRequestShip(requestId, "reject");
+                              alert("Заявка отклонена");
+                              navigate(0);
+                            } catch (e: any) {
+                              console.error("Ошибка отклонения заявки:", e);
+                              alert("Ошибка отклонения заявки: " + (e.message || e));
+                            }
+                          }}
+                        >
+                          Отклонить
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="empty-actions"></div> // Пустая ячейка для других статусов
+                    )}
+                  </div>
+                )}
+              </div>
               );
             })}
           </div>
